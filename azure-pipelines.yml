@@ -1,0 +1,22 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: |
+    echo 'Deploying Hello World!'
+    echo '<!DOCTYPE html><html><body><h1>Hello, World!</h1></body></html>' > index.html
+  displayName: 'Create HTML File'
+
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
+
+- script: |
+    echo 'Uploading to Azure Blob Storage...'
+    az login --service-principal -u ${{ secrets.AZURE_SP_APP_ID }} -p ${{ secrets.AZURE_SP_PASSWORD }} --tenant ${{ secrets.AZURE_SP_TENANT }}
+    az storage blob upload-batch -d '$web' -s . --type block
+  displayName: 'Upload to Azure Blob Storage'
